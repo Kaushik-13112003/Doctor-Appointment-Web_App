@@ -1,10 +1,15 @@
 import React, { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { AiOutlineMenu, AiOutlineClose } from "react-icons/ai"; // Importing hamburger and close icons
+import { useQuery } from "@tanstack/react-query";
+import useLogout from "./useLogout";
 
 const Navbar = () => {
   const { pathname } = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // State for mobile menu
+  const { data: authenticatedUser } = useQuery({ queryKey: ["authUser"] });
+
+  const { handleLogout } = useLogout();
 
   return (
     <>
@@ -58,14 +63,23 @@ const Navbar = () => {
         </div>
 
         {/* Create Account Button - Always Visible */}
-        <div className="ml-auto md:ml-0">
-          <NavLink
-            to="/register"
-            className="bg-cyan-800 p-2 rounded-lg text-white hover:bg-cyan-500 duration-500"
+        {authenticatedUser ? (
+          <button
+            onClick={handleLogout}
+            className="w-[100px]  bg-cyan-800 text-white p-2 rounded-md hover:bg-cyan-500 duration-500"
           >
-            Create Account
-          </NavLink>
-        </div>
+            Logout
+          </button>
+        ) : (
+          <div className="ml-auto md:ml-0">
+            <NavLink
+              to="/register"
+              className="bg-cyan-800 p-2 rounded-lg text-white hover:bg-cyan-500 duration-500"
+            >
+              Create Account
+            </NavLink>
+          </div>
+        )}
 
         {/* Hamburger Menu for Mobile */}
         <div className="md:hidden ml-3 mt-2">
@@ -125,12 +139,22 @@ const Navbar = () => {
           >
             Contact
           </NavLink>
-          <button
-            className=" text-xl bg-white text-cyan-800 p-2 rounded-lg mt-4"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            Create Account
-          </button>
+
+          {authenticatedUser ? (
+            <button
+              onClick={handleLogout}
+              className="w-[100px]  bg-cyan-400 text-white p-2 rounded-md hover:bg-cyan-700 duration-500"
+            >
+              Logout
+            </button>
+          ) : (
+            <button
+              className=" text-xl bg-white text-cyan-800 p-2 rounded-lg mt-4"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Create Account
+            </button>
+          )}
         </div>
       )}
     </>

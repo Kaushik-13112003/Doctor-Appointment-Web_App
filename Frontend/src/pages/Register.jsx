@@ -1,37 +1,61 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useState } from "react";
-import { NavLink } from "react-router-dom";
+import toast from "react-hot-toast";
+import { NavLink, useNavigate } from "react-router-dom";
 
 const Register = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    role: "patient", // default role
+  const navigate = useNavigate();
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState("");
+  const queryClient = useQueryClient();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: async ({ name, email, password, role }) => {
+      try {
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({ name, email, password, role }),
+        });
+
+        let dataFromResponse = await res.json();
+        if (res.ok) {
+          toast.success(
+            dataFromResponse?.msg || "User Registered Successfully"
+          );
+          queryClient.invalidateQueries({ queryKey: ["authUser"] });
+          navigate("/");
+        } else {
+          toast.error(dataFromResponse.msg || "Something went wrong");
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    },
   });
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
+  // handleSubmit
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Add logic to handle the registration form submission here
-    console.log("Register Form Data:", formData);
+    mutate({ name, email, password, role });
   };
 
   return (
     <div className="flex justify-center items-center mt-[50px]">
       <div className="bg-gray-100 p-6 rounded-lg shadow-lg w-full max-w-md">
         <h2 className="text-2xl font-bold mb-6 text-cyan-800">Register</h2>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form className="flex flex-col gap-4">
           <input
             type="text"
             name="name"
-            value={formData.name}
-            onChange={handleChange}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             placeholder="Full Name"
             className="p-2 border border-gray-300 rounded-lg"
             required
@@ -39,8 +63,8 @@ const Register = () => {
           <input
             type="email"
             name="email"
-            value={formData.email}
-            onChange={handleChange}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             placeholder="Email"
             className="p-2 border border-gray-300 rounded-lg"
             required
@@ -48,8 +72,8 @@ const Register = () => {
           <input
             type="password"
             name="password"
-            value={formData.password}
-            onChange={handleChange}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
             className="p-2 border border-gray-300 rounded-lg"
             required
@@ -57,19 +81,22 @@ const Register = () => {
           {/* Role Selection */}
           <select
             name="role"
-            value={formData.role}
-            onChange={handleChange}
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
             className="p-2 border border-gray-300 rounded-lg"
           >
+            {" "}
+            <option value="">Select</option>
             <option value="patient">Patient</option>
             <option value="doctor">Doctor</option>
             <option value="admin">Admin</option>
           </select>
           <button
             type="submit"
+            onClick={handleSubmit}
             className="bg-cyan-800 text-white p-2 rounded-lg hover:bg-cyan-500 duration-300"
           >
-            Create Account
+            {isPending ? "Loading..." : "Create Account"}{" "}
           </button>
         </form>
         <div className="mt-4 text-center">

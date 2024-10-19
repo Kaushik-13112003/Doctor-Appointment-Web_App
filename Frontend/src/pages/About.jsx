@@ -1,10 +1,12 @@
 import React from "react";
 import Banner from "./Banner";
+import { useQuery } from "@tanstack/react-query";
 
 const About = () => {
   return (
     <>
       <Banner />
+
       <div className="bg-gray-100 min-h-screen flex flex-col items-center p-6">
         {/* Header Section */}
         <div className="text-center mt-8">

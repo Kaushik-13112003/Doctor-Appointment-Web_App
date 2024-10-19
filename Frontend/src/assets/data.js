@@ -37,24 +37,23 @@ export const doctors = [
       {
         day: "Monday",
         slots: [
-          { time: "10:00 AM - 11:00 AM", available: true },
-          { time: "12:00 PM - 1:00 PM", available: false },
-          { time: "2:00 PM - 3:00 PM", available: true },
+          { time: "10:00 AM ", available: true },
+          { time: "11:00 AM ", available: true },
         ],
       },
       {
         day: "Tuesday",
         slots: [
-          { time: "11:00 AM - 12:00 PM", available: true },
-          { time: "1:00 PM - 2:00 PM", available: false },
-          { time: "3:00 PM - 4:00 PM", available: true },
+          { time: "10:00 AM ", available: false },
+          { time: "11:00 AM ", available: true },
+          { time: "11:30 AM ", available: true },
         ],
       },
       {
         day: "Wednesday",
         slots: [
-          { time: "9:00 AM - 10:00 AM", available: true },
-          { time: "11:00 AM - 12:00 PM", available: true },
+          { time: "10:00 AM ", available: true },
+          { time: "11:00 AM ", available: true },
         ],
       },
     ],
@@ -63,7 +62,7 @@ export const doctors = [
     _id: "2",
     name: "Dr. Emily Clark",
     degree: "MD",
-    specialty: "Dermatologist",
+    specialty: "Neurologist",
     experience: "8 years",
     fees: "$40",
     address: "c-34, toal plaza",
@@ -73,25 +72,24 @@ export const doctors = [
       {
         day: "Monday",
         slots: [
-          { time: "9:00 AM - 10:00 AM", available: true },
-          { time: "11:00 AM - 12:00 PM", available: false },
-          { time: "1:00 PM - 2:00 PM", available: true },
+          { time: "10:00 AM", available: false },
+          { time: "10:30 AM", available: true },
         ],
       },
       {
         day: "Wednesday",
         slots: [
-          { time: "10:00 AM - 11:00 AM", available: true },
-          { time: "12:00 PM - 1:00 PM", available: false },
-          { time: "2:00 PM - 3:00 PM", available: true },
+          { time: "10:00 AM", available: false },
+          { time: "10:30 AM", available: true },
+          { time: "11:00 AM", available: true },
+          { time: "11:30 AM", available: true },
         ],
       },
       {
         day: "Friday",
         slots: [
-          { time: "9:00 AM - 10:00 AM", available: true },
-          { time: "11:00 AM - 12:00 PM", available: true },
-          { time: "1:00 PM - 2:00 PM", available: false },
+          { time: "10:00 AM", available: false },
+          { time: "10:30 AM", available: true },
         ],
       },
     ],
@@ -100,7 +98,7 @@ export const doctors = [
     _id: "3",
     name: "Dr. Sarah Lee",
     degree: "MBBS, MD",
-    specialty: "Pediatrician",
+    specialty: "Neurologist",
     address: "c-34, toal plaza",
     experience: "12 years",
     fees: "$55",
@@ -109,25 +107,10 @@ export const doctors = [
       "Specialized in children's health and well-being from infancy to adolescence.",
     availability: [
       {
-        day: "Tuesday",
+        day: "Friday",
         slots: [
-          { time: "10:00 AM - 11:00 AM", available: true },
-          { time: "12:00 PM - 1:00 PM", available: true },
-        ],
-      },
-      {
-        day: "Thursday",
-        slots: [
-          { time: "11:00 AM - 12:00 PM", available: false },
-          { time: "1:00 PM - 2:00 PM", available: true },
-          { time: "3:00 PM - 4:00 PM", available: true },
-        ],
-      },
-      {
-        day: "Saturday",
-        slots: [
-          { time: "9:00 AM - 10:00 AM", available: true },
-          { time: "11:00 AM - 12:00 PM", available: true },
+          { time: "10:00 AM", available: false },
+          { time: "10:30 AM", available: true },
         ],
       },
     ],
@@ -147,23 +130,10 @@ export const doctors = [
       {
         day: "Wednesday",
         slots: [
-          { time: "10:00 AM - 11:00 AM", available: true },
-          { time: "12:00 PM - 1:00 PM", available: true },
-          { time: "2:00 PM - 3:00 PM", available: false },
-        ],
-      },
-      {
-        day: "Thursday",
-        slots: [
-          { time: "9:00 AM - 10:00 AM", available: true },
-          { time: "11:00 AM - 12:00 PM", available: false },
-        ],
-      },
-      {
-        day: "Friday",
-        slots: [
-          { time: "10:00 AM - 11:00 AM", available: true },
-          { time: "12:00 PM - 1:00 PM", available: true },
+          { time: "10:00 AM", available: false },
+          { time: "10:30 AM", available: true },
+          { time: "11:00 AM", available: true },
+          { time: "11:30 AM", available: true },
         ],
       },
     ],
@@ -180,29 +150,94 @@ export const doctors = [
     about: "Specialist in neurological disorders, brain and nerve conditions.",
     availability: [
       {
-        day: "Monday",
-        slots: [
-          { time: "9:00 AM - 10:00 AM", available: true },
-          { time: "11:00 AM - 12:00 PM", available: true },
-          { time: "1:00 PM - 2:00 PM", available: false },
-        ],
-      },
-
-      {
         day: "Wednesday",
         slots: [
-          { time: "10:00 AM - 11:00 AM", available: true },
-          { time: "12:00 PM - 1:00 PM", available: false },
-          { time: "2:00 PM - 3:00 PM", available: true },
-        ],
-      },
-      {
-        day: "Thursday",
-        slots: [
-          { time: "11:00 AM - 12:00 PM", available: true },
-          { time: "1:00 PM - 2:00 PM", available: false },
+          { time: "10:00 AM", available: false },
+          { time: "10:30 AM", available: true },
+          { time: "11:00 AM", available: true },
+          { time: "11:30 AM", available: true },
         ],
       },
     ],
   },
+];
+
+export const latestAppointmentData = [
+  {
+    _id: "1",
+    name: "Dr. John Doe",
+    degree: "MBBS",
+    experience: "10 years",
+    fees: "$50",
+    patinetImage: "/doctor1.png",
+    doctorImage: "/doctor1.png",
+    status: "Completed",
+    dateTime: "5 Oct 2024",
+  },
+
+  {
+    _id: "2",
+    name: "Dr. John Doe",
+    degree: "MBBS",
+    experience: "10 years",
+    fees: "$50",
+    patinetImage: "/doctor1.png",
+    doctorImage: "/doctor1.png",
+    status: "Completed",
+    dateTime: "4 Oct 2024",
+  },
+];
+
+export const adminAllAppointmentData = [
+  {
+    _id: "1",
+    doctorName: "Dr. John Doe",
+    patientName: "Kaushik",
+    degree: "MBBS",
+    experience: "10 years",
+    fees: "$50",
+    patinetImage: "/doctor1.png",
+    doctorImage: "/doctor1.png",
+    status: "Completed",
+    dateTime: "5 Oct 2024",
+  },
+
+  {
+    _id: "2",
+    name: "Dr. John Doe",
+    degree: "MBBS",
+    patientName: "chaman",
+    experience: "10 years",
+    fees: "$50",
+    patinetImage: "/doctor1.png",
+    doctorImage: "/doctor1.png",
+    status: "Completed",
+    dateTime: "4 Oct 2024",
+  },
+];
+
+export const weekDays = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Satured",
+  "Sunday",
+];
+
+export const slotTime = [
+  "10:00 AM",
+  "10:30 AM",
+  "11:00 AM",
+  "11:30 AM",
+  "12:00 PM",
+  "12:30 PM",
+  "01:00 PM",
+  "01:30 PM",
+  "02:00 PM",
+  "02:30 PM",
+  "03:00 PM",
+  "03:30 PM",
+  "04:00 PM",
 ];

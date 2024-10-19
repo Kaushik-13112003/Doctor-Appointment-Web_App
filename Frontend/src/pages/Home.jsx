@@ -15,6 +15,10 @@ const Home = () => {
 
       <FindBySpeciality />
 
+      <h1 className="text-2xl font-bold  text-center mt-10">
+        Top Doctors for Appointment
+      </h1>
+
       <DoctorsLayout />
 
       <div className=" flex items-center justify-center mt-5">
