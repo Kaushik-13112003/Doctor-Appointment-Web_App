@@ -7,7 +7,7 @@ import DoctorsLayout from "../components/DoctorsLayout";
 import { AiOutlineArrowRight } from "react-icons/ai";
 
 const Home = () => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   return (
     <>

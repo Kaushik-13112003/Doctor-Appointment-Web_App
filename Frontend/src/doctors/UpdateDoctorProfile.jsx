@@ -2,25 +2,16 @@ import React, { useState, useEffect } from "react";
 import Back from "../components/Back";
 import { useNavigate } from "react-router-dom";
 import { FaUpload } from "react-icons/fa";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
 const UpdateDoctorProfile = () => {
   const navigate = useNavigate();
-
-  // Initial user data fetched from API or stored locally
-  const initialData = {
-    name: "Kaushik Prajapati",
-    email: "kp@gmail.com",
-    phone: "9087623122",
-    address: "123, local plaza",
-    gender: "Male",
-    birthday: "12/02/2003",
-    profileImage: "./banner.png",
-    fees: "13",
-  };
+  const { data: authenticatedUser } = useQuery({ queryKey: ["authUser"] });
 
   // Local state to handle the form data
-  const [userData, setUserData] = useState(initialData);
-  const [image, setImage] = useState(initialData.profileImage);
+  const [userData, setUserData] = useState();
+  const [image, setImage] = useState();
 
   // Function to handle input changes
   const handleChange = (e) => {
@@ -40,25 +31,67 @@ const UpdateDoctorProfile = () => {
     }
   };
 
+  //update prifle
+  const { mutate, isPending } = useMutation({
+    mutationFn: async ({ ...userData }) => {
+      if (userData.phone.length < 10 || userData.phone.length > 10) {
+        toast.error("invalid phone number");
+        return;
+      }
+      try {
+        const res = await fetch(
+          `/api/doctor/update-doctor-profile/${authenticatedUser?.doctorProfile?._id}`,
+          {
+            method: "PUT",
+
+            headers: {
+              "Content-Type": "application/json",
+            },
+
+            body: JSON.stringify({ ...userData, image }),
+          }
+        );
+
+        if (res.ok) {
+          toast.success("profile updated");
+          navigate("/doctor-profile");
+        } else {
+          toast.error("something went wrong");
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    },
+  });
+
   // Submit updated data
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Updated Data: ", userData);
-    // Logic to submit updated profile data (API call)
-    // After successful update, navigate to the profile page
-    navigate(-1);
+    mutate({ ...userData });
   };
+
+  // console.log(doctorProfile);
+  useEffect(() => {
+    if (authenticatedUser?.doctorProfile) {
+      setUserData(authenticatedUser?.doctorProfile);
+      setImage(authenticatedUser?.doctorProfile?.image);
+    }
+  }, []);
 
   return (
     <div>
       <Back />
 
-      <form onSubmit={handleSubmit} className="flex gap-6 flex-col">
+      <form className="flex gap-6 flex-col">
         <div className="flex items-center gap-6">
           <div>
-            <img src={image} alt="Profile" className=" h-[150px] w-[150px]  " />
+            <img
+              src={image ? image : "./banner.png"}
+              alt="Profile"
+              className=" h-[150px] w-[150px]"
+            />
             <label htmlFor="image">
-              <div className="flex text-white items-center justify-center  gap-3 bg-cyan-800 p-2  hover:bg-cyan-500 duration-500">
+              <div className="flex text-white items-center justify-center  gap-3 bg-cyan-800 p-2  hover:bg-cyan-500 duration-500 cursor-pointer">
                 <FaUpload />
                 Uplaod
               </div>
@@ -79,7 +112,7 @@ const UpdateDoctorProfile = () => {
             <input
               type="text"
               name="name"
-              value={userData.name}
+              value={userData?.name}
               onChange={handleChange}
               className="w-full border border-gray-300 p-2 rounded-md"
             />
@@ -90,9 +123,10 @@ const UpdateDoctorProfile = () => {
             <input
               type="email"
               name="email"
-              value={userData.email}
+              disabled
+              value={userData?.email}
               onChange={handleChange}
-              className="w-full border border-gray-300 p-2 rounded-md"
+              className="w-full border bg-gray-200 border-gray-300 p-2 rounded-md"
             />
           </div>
 
@@ -101,18 +135,18 @@ const UpdateDoctorProfile = () => {
             <input
               type="text"
               name="phone"
-              value={userData.phone}
+              value={userData?.phone}
               onChange={handleChange}
               className="w-full border border-gray-300 p-2 rounded-md"
             />
           </div>
 
           <div>
-            <label className="block font-semibold">Fees($):</label>
+            <label className="block font-semibold">Fees(₹):</label>
             <input
               type="number"
               name="fees"
-              value={userData.fees}
+              value={userData?.fees}
               onChange={handleChange}
               className="w-full border border-gray-300 p-2 rounded-md"
             />
@@ -123,7 +157,7 @@ const UpdateDoctorProfile = () => {
             <input
               type="text"
               name="address"
-              value={userData.address}
+              value={userData?.address}
               onChange={handleChange}
               className="w-full border border-gray-300 p-2 rounded-md"
             />
@@ -133,32 +167,24 @@ const UpdateDoctorProfile = () => {
             <label className="block font-semibold">Gender:</label>
             <select
               name="gender"
-              value={userData.gender}
+              value={userData?.gender}
               onChange={handleChange}
               className="w-full border border-gray-300 p-2 rounded-md"
             >
+              <option value="">Select One</option>
+
               <option value="Male">Male</option>
               <option value="Female">Female</option>
               <option value="Other">Other</option>
             </select>
           </div>
 
-          <div>
-            <label className="block font-semibold">Birthday:</label>
-            <input
-              type="date"
-              name="birthday"
-              value={userData.birthday}
-              onChange={handleChange}
-              className="w-full border border-gray-300 p-2 rounded-md"
-            />
-          </div>
-
           <button
             type="submit"
+            onClick={handleSubmit}
             className="w-[150px] mt-2 bg-cyan-800 text-white p-2 rounded-md hover:bg-cyan-500 duration-500"
           >
-            Save Changes
+            {isPending ? "Saving Changes..." : "Save Changes"}
           </button>
         </div>
       </form>

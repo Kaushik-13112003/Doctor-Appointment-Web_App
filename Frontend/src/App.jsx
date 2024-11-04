@@ -30,6 +30,8 @@ import WelcomeAdmin from "./admin/pages/WelcomeAdmin";
 import WelcomeDoctor from "./doctors/WelcomeDoctor";
 import PrivateRoute from "./pages/PrivateRoute";
 import NotFound from "./pages/NotFound";
+import Success from "./profile/Success";
+import Cancel from "./profile/Cancel";
 
 const App = () => {
   const navigate = useNavigate("");
@@ -92,6 +94,10 @@ const App = () => {
             path="/:speciality"
             element={authenticatedUser ? <Speciality /> : <Register />}
           ></Route>
+          <Route
+            path="/doctor/:id"
+            element={authenticatedUser ? <SingleDoctor /> : <Register />}
+          ></Route>
           <Route path="/login" element={<Login />}></Route>
 
           {/* Patient Routes */}
@@ -125,6 +131,40 @@ const App = () => {
                 requiredRole="patient"
               >
                 <UpdateProfile />
+              </PrivateRoute>
+            }
+          ></Route>
+
+          <Route
+            path="/my-appointments"
+            element={
+              <PrivateRoute
+                authenticatedUser={authenticatedUser}
+                requiredRole="patient"
+              >
+                <Appointments />
+              </PrivateRoute>
+            }
+          ></Route>
+          <Route
+            path="/success"
+            element={
+              <PrivateRoute
+                authenticatedUser={authenticatedUser}
+                requiredRole="patient"
+              >
+                <Success />
+              </PrivateRoute>
+            }
+          ></Route>
+          <Route
+            path="/cancel"
+            element={
+              <PrivateRoute
+                authenticatedUser={authenticatedUser}
+                requiredRole="patient"
+              >
+                <Cancel />
               </PrivateRoute>
             }
           ></Route>
@@ -216,7 +256,7 @@ const App = () => {
                 authenticatedUser={authenticatedUser}
                 requiredRole="doctor"
               >
-                <UpdateDoctorProfile />
+                <DoctorProfile />
               </PrivateRoute>
             }
           ></Route>

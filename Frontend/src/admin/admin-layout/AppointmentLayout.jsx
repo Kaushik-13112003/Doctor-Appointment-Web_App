@@ -1,20 +1,6 @@
 import React from "react";
 
 const AppointmentLayout = ({ appointmentData, type }) => {
-  // State to store appointment data
-
-  // Handle appointment cancellation
-  const handleCancel = (id) => {
-    console.log(`Cancelled appointment with id: ${id}`);
-    // Logic for canceling the appointment
-  };
-
-  // Handle online payment
-  const handlePayOnline = (id) => {
-    console.log(`Paid for appointment with id: ${id}`);
-    // Logic for paying online
-  };
-
   return (
     <>
       <div className="p-6 -mt-7">
@@ -32,17 +18,16 @@ const AppointmentLayout = ({ appointmentData, type }) => {
                 <div className="flex flex-col gap-2 items-center justify-center">
                   <p>Patient</p>
                   <img
-                    // src={
-                    //   appointment.patinetImage
-                    //     ? appointment.patinetImage
-                    //     : "./banner.png"
-                    // }
-                    src={"./banner.png"}
-                    alt={appointment.doctorName}
+                    src={
+                      appointment?.patient?.image
+                        ? appointment?.patient?.image
+                        : "./profile.jpg"
+                    }
+                    alt={appointment?.patient?.name}
                     className="w-16 h-16 rounded-full object-cover"
                   />
-                  <h3 className="text-xl  mt-2 font-semibold text-cyan-800">
-                    {appointment.patientName}
+                  <h3 className="text-xl uppercase mt-2 font-semibold text-cyan-800">
+                    {appointment?.patient?.name}
                   </h3>
                 </div>
 
@@ -51,35 +36,53 @@ const AppointmentLayout = ({ appointmentData, type }) => {
                 {/* Appointment Details */}
                 <div className="flex flex-col">
                   <img
-                    // src={
-                    //   appointment.doctorImage
-                    //     ? appointment.doctorImage
-                    //     : "./banner.png"
-                    // }
-                    src={"./banner.png"}
-                    alt={appointment.doctorName}
+                    src={
+                      appointment?.doctor?.image
+                        ? appointment?.doctor?.image
+                        : "./profile.jpg"
+                    }
+                    alt={appointment?.doctor?.name}
                     className="w-16 h-16 rounded-full object-cover"
                   />
-                  <h3 className="text-xl  mt-2 font-semibold text-cyan-800">
-                    {appointment.doctorName}
+                  <h3 className="text-xl uppercase  mt-2 font-semibold text-cyan-800">
+                    {appointment?.doctor?.name}
                   </h3>
+                  <p className="text-gray-700">
+                    Speciality : {""}
+                    {appointment?.doctor?.speciality}
+                  </p>
+                  <p className="text-gray-700">
+                    Date : {appointment?.slotDate} - {appointment?.slotDay}
+                  </p>
+                  <p className="text-gray-700">
+                    Time : {appointment?.slotTime}
+                  </p>
+                  <p className="text-gray-700">
+                    Fees : ₹{appointment?.doctor?.fees}
+                  </p>
+                  {appointment?.payment && (
+                    <p className="text-gray-700">
+                      Payment : {appointment?.payment ? "PAID" : "NOT PAID"}
+                    </p>
+                  )}
 
-                  <p className="text-gray-700">Date: {appointment.dateTime}</p>
                   <p
                     className={`font-semibold ${
-                      appointment.status === "Confirmed"
+                      appointment?.status === "Confirmed"
                         ? "text-green-600"
-                        : appointment.status === "Pending"
+                        : appointment?.status === "Pending"
                         ? "text-yellow-600"
+                        : appointment?.status === "Completed"
+                        ? "text-blue-600"
                         : "text-red-600"
                     }`}
                   >
-                    Status: {appointment.status}
+                    Status: {appointment?.status}
                   </p>
                 </div>
 
                 {/* Buttons for actions */}
-                <div className="flex flex-col gap-2">
+                {/* <div className="flex flex-col gap-2">
                   <button
                     onClick={() => handlePayOnline(appointment.id)}
                     className="bg-cyan-800 text-white p-2 rounded-lg hover:bg-cyan-500 duration-300"
@@ -94,7 +97,7 @@ const AppointmentLayout = ({ appointmentData, type }) => {
                   >
                     Cancel
                   </button>
-                </div>
+                </div> */}
               </div>
             ))}
           </div>

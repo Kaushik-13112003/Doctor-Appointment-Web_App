@@ -63,8 +63,9 @@ const userSchema = new mongoose.Schema(
       type: Number,
     },
 
-    speciality: {
-      type: String,
+    my_appointments: {
+      type: Array, // Change type to Array
+      default: [], // Set default to an empty array
     },
   },
   { timestamps: true }

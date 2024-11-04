@@ -1,9 +1,20 @@
 import React, { useState } from "react";
-import { AiOutlineUpload, AiOutlineClose } from "react-icons/ai"; // Importing icons
+import { AiOutlineUpload } from "react-icons/ai"; // Importing icons
 import AdminHome from "./admin-layout/AdminHome";
-import { slotTime, weekDays } from "../assets/data";
+import { IoClose } from "react-icons/io5";
+import { useMutation } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const AddDoctors = () => {
+  const navigate = useNavigate("");
+  const specialties = [
+    "Cardiologist",
+    "Dermatologist",
+    "Pediatrics",
+    "Neurologist",
+    "Orthopedics",
+  ];
   const [formData, setFormData] = useState({
     name: "",
     degree: "",
@@ -12,96 +23,70 @@ const AddDoctors = () => {
     password: "",
     experience: "",
     email: "",
-    mobile: "",
-    specialty: "",
+    phone: "",
+    speciality: "",
     gender: "",
     fees: "",
-    image: null,
   });
-  const [day, setDay] = useState("");
-  const [time, setTime] = useState("");
-  const [selectedSlot, setSelectedSlot] = useState([]);
-  const [availability, setAvailability] = useState([]);
-  const [errorMessage, setErrorMessage] = useState(""); // To store error messages
 
-  const handleTimeSelection = (ele, isChecked) => {
-    setSelectedSlot((prevSlots) => {
-      if (isChecked) {
-        // Add the selected time slot if it's not already in the array
-        return [...prevSlots, ele];
-      } else {
-        // Remove the selected time slot if it's unchecked
-        return prevSlots.filter((time) => time !== ele);
-      }
-    });
-  };
-
-  const handleAvailability = () => {
-    // Check if the day is already selected
-    const isDayAlreadyAdded = availability.some((item) => item.day === day);
-
-    if (isDayAlreadyAdded) {
-      setErrorMessage(`${day} is already selected`);
-    } else if (selectedSlot.length === 0) {
-      setErrorMessage("Please select at least one time slot");
-    } else {
-      setAvailability((prev) => {
-        return [
-          ...prev,
-          {
-            day: day,
-            slots: selectedSlot,
-          },
-        ];
-      });
-      setDay("");
-      setSelectedSlot([]);
-      setErrorMessage(""); // Clear any previous error message
-    }
-  };
-
-  const handleDeleteDay = (dayToDelete) => {
-    setAvailability((prev) => prev.filter((item) => item.day !== dayToDelete));
-  };
-
-  const handleEditDay = (dayToEdit) => {
-    const dayData = availability.find((item) => item.day === dayToEdit);
-    if (dayData) {
-      setDay(dayToEdit);
-      setSelectedSlot(dayData.slots);
-      handleDeleteDay(dayToEdit); // Remove the day to allow updating
-    }
-  };
-
-  const specialties = [
-    "Cardiology",
-    "Dermatology",
-    "Pediatrics",
-    "Neurology",
-    "Orthopedics",
-  ];
-  const experiences = ["0-1 years", "1-3 years", "3-5 years", "5+ years"];
+  const [image, setImage] = useState("");
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     setFormData((prevData) => ({
       ...prevData,
       [name]: files ? files[0] : value,
-      image: files ? URL.createObjectURL(files[0]) : null, // Store the image URL for display
     }));
   };
 
-  const handleImageRemove = () => {
-    setFormData((prevData) => ({
-      ...prevData,
-      image: null, // Reset the image state
-    }));
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+
+    if (file) {
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        setImage(reader.result);
+      };
+
+      reader.readAsDataURL(file);
+    }
   };
 
+  // Add new doctor
+  const { mutate, isPending } = useMutation({
+    mutationFn: async ({ ...formData }) => {
+      try {
+        if (formData.phone.length !== 10) {
+          toast.error("Enter a valid phone number");
+          return;
+        }
+
+        const res = await fetch("/api/admin/add-doctor", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ ...formData, image }),
+        });
+
+        let dataFromResponse = await res.json();
+        if (res.ok) {
+          toast.success(dataFromResponse?.msg || "Doctor added successfully");
+          navigate("/admin-doctor-list");
+        } else {
+          toast.error(dataFromResponse.msg || "Something went wrong");
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    },
+  });
+
+  // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Here you can add your form submission logic (API call, etc.)
-    console.log("Form Data Submitted:", formData);
+    mutate({ ...formData });
   };
 
   return (
@@ -109,43 +94,36 @@ const AddDoctors = () => {
       <div className="p-6 bg-white rounded-lg shadow-md">
         <h2 className="text-2xl font-bold mb-4">Add Doctor</h2>
 
-        {/* Upload Button */}
-        <div className="mb-4 flex items-center">
-          <label className="mr-2 text-gray-700">Upload Image:</label>
-          <label className="flex items-center bg-cyan-800 text-white rounded p-2 cursor-pointer hover:bg-cyan-600 hover:duration-500">
-            <AiOutlineUpload className="mr-1" />
-            <input
-              type="file"
-              name="image"
-              accept="image/*"
-              onChange={handleChange}
-              className="hidden" // Hide the default file input
-              required
-            />
-            Upload
-          </label>
-        </div>
-
-        {/* Display Uploaded Image */}
-        {formData.image && (
-          <div className="relative mb-4">
-            <img
-              src={formData.image}
-              alt="Doctor"
-              className="w-32 h-32 object-cover rounded border"
-            />
-            <button
-              type="button"
-              onClick={handleImageRemove}
-              className="absolute -top-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-              title="Remove Image"
-            >
-              <AiOutlineClose />
-            </button>
-          </div>
-        )}
-
         <form onSubmit={handleSubmit}>
+          {/* Upload Button */}
+          <div className="mb-4 flex items-center">
+            <label className="mr-2 text-gray-700">Upload Image:</label>
+            <label className="flex items-center bg-cyan-800 text-white rounded p-2 cursor-pointer hover:bg-cyan-600 hover:duration-500">
+              <AiOutlineUpload className="mr-1" />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden" // Hide the default file input
+              />
+              Upload
+            </label>
+          </div>
+
+          {/* Display Uploaded Image */}
+          {image && (
+            <>
+              <div className=" relative">
+                <IoClose
+                  className=" absolute left-2 top-2 text-red-400 hover:text-red-300 duration-0  cursor-pointer"
+                  size={25}
+                  
+                  onClick={() => setImage("")}
+                />
+                <img src={image} className="mt-6 mb-3 w-[] h-[200px]"></img>
+              </div>
+            </>
+          )}
           {/* Form Fields */}
           <div className="mb-6">
             <label className="block text-gray-700 mb-1">Name</label>
@@ -207,21 +185,18 @@ const AddDoctors = () => {
             />
           </div>
           <div className="mb-6">
-            <label className="block text-gray-700 mb-1">Experience</label>
-            <select
+            <label className="block text-gray-700 mb-1">
+              Experience (in years)
+            </label>
+            <input
+              type="number"
               name="experience"
               value={formData.experience}
               onChange={handleChange}
+              placeholder="Enter Experience"
               className="w-full border border-gray-300 rounded p-2"
               required
-            >
-              <option value="">Select Experience</option>
-              {experiences.map((exp, index) => (
-                <option key={index} value={exp}>
-                  {exp}
-                </option>
-              ))}
-            </select>
+            />
           </div>
           <div className="mb-6">
             <label className="block text-gray-700 mb-1">Email</label>
@@ -236,18 +211,46 @@ const AddDoctors = () => {
             />
           </div>
           <div className="mb-6">
-            <label className="block text-gray-700 mb-1">Mobile Number</label>
+            <label className="block text-gray-700 mb-1">Phone Number</label>
             <input
-              type="tel"
-              name="mobile"
-              value={formData.mobile}
+              type="text"
+              name="phone"
+              value={formData.phone}
               onChange={handleChange}
-              placeholder="Enter mobile number"
+              placeholder="Enter doctor's phone number"
               className="w-full border border-gray-300 rounded p-2"
               required
             />
           </div>
-
+          <div className="mb-6">
+            <label className="block text-gray-700 mb-1">Fees(₹)</label>
+            <input
+              type="number"
+              name="fees"
+              value={formData.fees}
+              onChange={handleChange}
+              placeholder="Enter doctor's fees"
+              className="w-full border border-gray-300 rounded p-2"
+              required
+            />
+          </div>
+          <div className="mb-6">
+            <label className="block text-gray-700 mb-1">Speciality</label>
+            <select
+              name="speciality"
+              value={formData.speciality}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded p-2"
+              required
+            >
+              <option value="">Select Speciality</option>
+              {specialties.map((spec) => (
+                <option key={spec} value={spec}>
+                  {spec}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="mb-6">
             <label className="block text-gray-700 mb-1">Gender</label>
             <select
@@ -258,49 +261,21 @@ const AddDoctors = () => {
               required
             >
               <option value="">Select Gender</option>
-              <option value={"Male"}>Male</option>
-              <option value={"Female"}>Female</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
             </select>
           </div>
 
-          <div className="mb-6">
-            <label className="block text-gray-700 mb-1">Specialty</label>
-            <select
-              name="specialty"
-              value={formData.specialty}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded p-2"
-              required
-            >
-              <option value="">Select Specialty</option>
-              {specialties.map((spec, index) => (
-                <option key={index} value={spec}>
-                  {spec}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="mb-6">
-            <label className="block text-gray-700 mb-1">Fees</label>
-            <input
-              type="number"
-              name="fees"
-              value={formData.fees}
-              onChange={handleChange}
-              placeholder="Enter consultation fees"
-              className="w-full border border-gray-300 rounded p-2"
-              required
-            />
-          </div>
-
-          {/* Slot Section */}
-          <div className="mb-6 flex flex-col gap-4">
+          {/* Availability Section */}
+          {/* <div className="mb-6 flex flex-col gap-4">
             <label className="block text-gray-700 mb-1">
               Select Day & Time Slot
             </label>
             <div className="flex gap-3 flex-wrap">
               {weekDays.map((ele) => (
                 <button
+                  key={ele}
                   type="button"
                   onClick={() => setDay(ele)}
                   className={`text-center gap-5 hover:bg-cyan-400 hover:duration-500 text-white p-2 rounded-md ${
@@ -314,7 +289,7 @@ const AddDoctors = () => {
 
             <div>
               {slotTime.map((ele) => (
-                <div className="flex gap-3 items-center">
+                <div key={ele} className="flex gap-3 items-center">
                   <input
                     type="checkbox"
                     value={ele}
@@ -336,45 +311,49 @@ const AddDoctors = () => {
               </button>
             )}
             {errorMessage && <p className="text-red-500">{errorMessage}</p>}
-          </div>
+          </div> */}
 
-          {/* Display Availability */}
-          <div>
+          {/* Display Selected Availability */}
+          {/* <div className="mb-6">
             {availability.length > 0 && (
-              <h3 className="text-lg font-bold mb-2">Availability:</h3>
-            )}
-            {availability.map((item, index) => (
-              <div key={index} className="mb-2 p-2 border rounded">
-                <div className="flex justify-between items-center">
-                  <p>
-                    {item.day}: {item.slots.join(", ")}
-                  </p>
-                  <div>
-                    <button
-                      type="button"
-                      onClick={() => handleEditDay(item.day)}
-                      className="bg-green-600 hover:bg-green-500 duration-500 text-white p-2 rounded-md mr-2"
+              <div>
+                <h3 className="font-bold mb-2">Selected Availability:</h3>
+                <ul className="list-disc">
+                  {availability.map((item) => (
+                    <li
+                      key={item.day}
+                      className="flex gap-3 sm:flex-row flex-col sm:items-center mt-4 border-b border-black p-3"
                     >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteDay(item.day)}
-                      className="bg-red-600 hover:bg-red-500 duration-500 text-white p-2 rounded-md mr-2"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
+                      {item.day}:{" "}
+                      {item.slots.map((slot) => slot.time).join(", ")}
+                      <div className=" flex gap-2 mb-3">
+                        <button
+                          onClick={() => handleEditDay(item.day)}
+                          className="bg-green-500 hover:bg-green-400 duration-500  p-2 rounded-md text-white w-[80px]"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteDay(item.day)}
+                          className="bg-red-500 hover:bg-red-400 duration-500  text-white p-2 rounded-md w-[80px]"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            ))}
-          </div>
+            )}
+          </div> */}
 
+          {/* Submit Button */}
           <button
             type="submit"
-            className="bg-cyan-800 mb-2 mt-2 text-white rounded p-2 cursor-pointer hover:bg-cyan-600 hover:duration-500"
+            className="bg-cyan-800 text-white rounded p-2 hover:bg-cyan-600 hover:duration-500"
+            disabled={isPending}
           >
-            Add Doctor
+            {isPending ? "Adding..." : "Add Doctor"}
           </button>
         </form>
       </div>

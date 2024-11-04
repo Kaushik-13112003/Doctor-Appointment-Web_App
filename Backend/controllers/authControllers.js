@@ -1,6 +1,7 @@
 import { userModel } from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
+import { doctorModel } from "../models/doctorModel.js";
 
 export const registerController = async (req, res) => {
   try {
@@ -104,7 +105,14 @@ export const getAuthenticatedUserController = async (req, res) => {
       return res.status(404).json({ msg: "user not found " });
     }
 
-    return res.status(200).json(currentUser);
+    if (currentUser.role === "doctor") {
+      const doctorProfile = await doctorModel.findOne({
+        email: currentUser.email,
+      });
+      return res.status(200).json({ doctorProfile, role: "doctor" });
+    } else {
+      return res.status(200).json(currentUser);
+    }
   } catch (err) {
     console.log(err);
   }

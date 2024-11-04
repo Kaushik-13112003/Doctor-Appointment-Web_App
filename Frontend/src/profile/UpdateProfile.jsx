@@ -2,30 +2,18 @@ import React, { useState, useEffect } from "react";
 import Back from "../components/Back";
 import { useNavigate } from "react-router-dom";
 import { FaUpload } from "react-icons/fa";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
 const UpdateProfile = () => {
   const navigate = useNavigate();
+  const { data: authenticatedUser } = useQuery({ queryKey: ["authUser"] });
 
-  // Initial user data fetched from API or stored locally
-  const initialData = {
-    name: "Kaushik Prajapati",
-    email: "kp@gmail.com",
-    phone: "9087623122",
-    address: "123, local plaza",
-    gender: "Male",
-    birthday: "12/02/2003",
-    profileImage: "./banner.png",
-  };
-
-  // Local state to handle the form data
-  const [userData, setUserData] = useState(initialData);
-  const [image, setImage] = useState(initialData.profileImage);
-
-  // Function to handle input changes
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setUserData({ ...userData, [name]: value });
-  };
+  const [image, setImage] = useState();
+  const [name, setName] = useState();
+  const [gender, setGender] = useState();
+  const [address, setAddress] = useState();
+  const [phone, setPhone] = useState();
 
   // Function to handle image upload
   const handleImageChange = (e) => {
@@ -39,25 +27,64 @@ const UpdateProfile = () => {
     }
   };
 
+  //update prifle
+  const { mutate ,isPending} = useMutation({
+    mutationFn: async ({ name, gender, address, image, phone }) => {
+      if (phone.length < 10 || phone.length > 10) {
+        toast.error("invalid phone number");
+        return;
+      }
+      try {
+        const res = await fetch("/api/user/update-profile", {
+          method: "PUT",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({ name, gender, address, image, phone }),
+        });
+
+        if (res.ok) {
+          toast.success("profile updated");
+          navigate("/user-profile");
+        } else {
+          toast.error("something went wrong");
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    },
+  });
+
   // Submit updated data
-  const handleSubmit = (e) => {
+  const handleUpdatee = (e) => {
     e.preventDefault();
-    console.log("Updated Data: ", userData);
-    // Logic to submit updated profile data (API call)
-    // After successful update, navigate to the profile page
-    navigate(-1);
+    mutate({ name, gender, address, image, phone });
   };
+
+  useEffect(() => {
+    setName(authenticatedUser?.name);
+    setPhone(authenticatedUser?.phone);
+    setImage(authenticatedUser?.image);
+    setAddress(authenticatedUser?.address);
+    setGender(authenticatedUser?.gender);
+  }, []);
 
   return (
     <div>
       <Back />
 
-      <form onSubmit={handleSubmit} className="flex gap-6 flex-col">
+      <form className="flex gap-6 flex-col">
         <div className="flex items-center gap-6">
           <div>
-            <img src={image} alt="Profile" className=" h-[150px] w-[150px] " />
+            <img
+              src={image ? image : "./banner.png"}
+              alt="Profile"
+              className=" h-[150px] w-[150px] "
+            />
             <label htmlFor="image">
-              <div className="flex text-white items-center justify-center  gap-3 bg-cyan-800 p-2  hover:bg-cyan-500 duration-500">
+              <div className="flex text-white items-center justify-center  gap-3 bg-cyan-800 p-2 cursor-pointer  hover:bg-cyan-500 duration-500">
                 <FaUpload />
                 Uplaod
               </div>
@@ -78,8 +105,8 @@ const UpdateProfile = () => {
             <input
               type="text"
               name="name"
-              value={userData.name}
-              onChange={handleChange}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               className="w-full border border-gray-300 p-2 rounded-md"
             />
           </div>
@@ -89,9 +116,9 @@ const UpdateProfile = () => {
             <input
               type="email"
               name="email"
-              value={userData.email}
-              onChange={handleChange}
-              className="w-full border border-gray-300 p-2 rounded-md"
+              disabled
+              value={authenticatedUser?.email}
+              className="w-full border border-gray-300 bg-gray-200 p-2 rounded-md"
             />
           </div>
 
@@ -100,8 +127,8 @@ const UpdateProfile = () => {
             <input
               type="text"
               name="phone"
-              value={userData.phone}
-              onChange={handleChange}
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
               className="w-full border border-gray-300 p-2 rounded-md"
             />
           </div>
@@ -111,8 +138,8 @@ const UpdateProfile = () => {
             <input
               type="text"
               name="address"
-              value={userData.address}
-              onChange={handleChange}
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
               className="w-full border border-gray-300 p-2 rounded-md"
             />
           </div>
@@ -121,32 +148,24 @@ const UpdateProfile = () => {
             <label className="block font-semibold">Gender:</label>
             <select
               name="gender"
-              value={userData.gender}
-              onChange={handleChange}
+              value={gender}
+              onChange={(e) => setGender(e.target.value)}
               className="w-full border border-gray-300 p-2 rounded-md"
             >
+              <option value="">Select One</option>
+
               <option value="Male">Male</option>
               <option value="Female">Female</option>
               <option value="Other">Other</option>
             </select>
           </div>
 
-          <div>
-            <label className="block font-semibold">Birthday:</label>
-            <input
-              type="date"
-              name="birthday"
-              value={userData.birthday}
-              onChange={handleChange}
-              className="w-full border border-gray-300 p-2 rounded-md"
-            />
-          </div>
-
           <button
+            onClick={handleUpdatee}
             type="submit"
-            className="w-[150px] bg-cyan-800 text-white p-2 rounded-md hover:bg-cyan-500 duration-500"
+            className="w-[150px] mt-4 bg-cyan-800 text-white p-2 rounded-md hover:bg-cyan-500 duration-500"
           >
-            Save Changes
+            {isPending ? "Saving Changes..." : "Save Changes"}
           </button>
         </div>
       </form>

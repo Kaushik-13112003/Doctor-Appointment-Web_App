@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { AiOutlineMenu, AiOutlineClose } from "react-icons/ai"; // Importing hamburger and close icons
+import { AiOutlineMenu, AiOutlineClose } from "react-icons/ai";
 import { useQuery } from "@tanstack/react-query";
 import useLogout from "./useLogout";
 
 const Navbar = () => {
   const { pathname } = useLocation();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // State for mobile menu
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false); // State for profile dropdown
   const { data: authenticatedUser } = useQuery({ queryKey: ["authUser"] });
-
   const { handleLogout } = useLogout();
 
   return (
@@ -20,7 +20,6 @@ const Navbar = () => {
           </div>
         </NavLink>
 
-        {/* NavLinks - Shown in larger screens and hidden in mobile */}
         <div className="hidden md:flex gap-4 items-center">
           <NavLink
             to="/"
@@ -62,14 +61,42 @@ const Navbar = () => {
           </NavLink>
         </div>
 
-        {/* Create Account Button - Always Visible */}
         {authenticatedUser ? (
-          <button
-            onClick={handleLogout}
-            className="w-[100px]  bg-cyan-800 text-white p-2 rounded-md hover:bg-cyan-500 duration-500"
-          >
-            Logout
-          </button>
+          <div className="flex gap-3 items-center cursor-pointer relative">
+            <div
+              onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+            >
+              <img
+                src={authenticatedUser?.image || "/banner.png"}
+                alt={authenticatedUser?.name}
+                className="w-[40px] h-[40px] rounded-full"
+              />
+            </div>
+            {isProfileDropdownOpen && (
+              <div className="absolute text-white bg-cyan-800 top-full right-0 mt-2 w-40  shadow-lg rounded-lg z-10">
+                <NavLink
+                  to="/my-appointments"
+                  className="block px-4 py-2  hover:bg-cyan-500"
+                  onClick={() => setIsProfileDropdownOpen(false)}
+                >
+                  My Appointments
+                </NavLink>
+                <NavLink
+                  to="/user-profile"
+                  className="block px-4 py-2  hover:bg-cyan-500"
+                  onClick={() => setIsProfileDropdownOpen(false)}
+                >
+                  Profile
+                </NavLink>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left px-4 py-2 text-red-400 hover:bg-gray-100"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
         ) : (
           <div className="ml-auto md:ml-0">
             <NavLink
@@ -81,7 +108,6 @@ const Navbar = () => {
           </div>
         )}
 
-        {/* Hamburger Menu for Mobile */}
         <div className="md:hidden ml-3 mt-2">
           <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
             {isMobileMenuOpen ? (
@@ -93,10 +119,8 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu - Full screen with cyan background and nav links */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 bg-cyan-800 flex flex-col items-center justify-center z-50">
-          {/* Close Button */}
           <button
             className="absolute top-4 right-4 mr-3 text-white"
             onClick={() => setIsMobileMenuOpen(false)}
@@ -139,21 +163,21 @@ const Navbar = () => {
           >
             Contact
           </NavLink>
-
           {authenticatedUser ? (
             <button
               onClick={handleLogout}
-              className="w-[100px]  bg-cyan-400 text-white p-2 rounded-md hover:bg-cyan-700 duration-500"
+              className="w-[100px] bg-cyan-400 text-white p-2 rounded-md hover:bg-cyan-700 duration-500"
             >
               Logout
             </button>
           ) : (
-            <button
-              className=" text-xl bg-white text-cyan-800 p-2 rounded-lg mt-4"
+            <NavLink
+              to="/register"
+              className="text-xl bg-white text-cyan-800 p-2 rounded-lg mt-4"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Create Account
-            </button>
+            </NavLink>
           )}
         </div>
       )}

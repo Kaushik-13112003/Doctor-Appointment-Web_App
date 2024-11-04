@@ -1,23 +1,23 @@
 export const specialtyData = [
   {
     specialty: "Cardiologist",
-    image: "https://example.com/images/doctor1.jpg",
+    image: "Cardiologist.jpeg",
   },
   {
     specialty: "Dermatologist",
-    image: "https://example.com/images/doctor2.jpg",
+    image: "Dermatologist.jpeg",
   },
   {
-    specialty: "Pediatrician",
-    image: "https://example.com/images/doctor3.jpg",
+    specialty: "Pediatrics",
+    image: "Pediatrician.jpeg",
   },
   {
-    specialty: "Orthopedic",
-    image: "https://example.com/images/doctor4.jpg",
+    specialty: "Orthopedics",
+    image: "Orthopedic.jpeg",
   },
   {
     specialty: "Neurologist",
-    image: "https://example.com/images/doctor5.jpg",
+    image: "Neurologist.jpeg",
   },
 ];
 
@@ -217,13 +217,13 @@ export const adminAllAppointmentData = [
 ];
 
 export const weekDays = [
+  "Sunday",
   "Monday",
   "Tuesday",
   "Wednesday",
   "Thursday",
   "Friday",
   "Satured",
-  "Sunday",
 ];
 
 export const slotTime = [

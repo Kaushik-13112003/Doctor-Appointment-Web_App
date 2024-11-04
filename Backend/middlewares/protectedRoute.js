@@ -22,6 +22,7 @@ export const protectedRoute = async (req, res, next) => {
     }
 
     req.userId = findUser?._id;
+    req.email = findUser?.email;
     next();
   } catch (err) {
     console.log(err);

@@ -1,150 +1,308 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { doctors } from "../assets/data";
+import { doctors, weekDays } from "../assets/data";
 import Back from "./Back";
 import SuggestedDoctors from "./SuggestedDoctors";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
 const SingleDoctor = () => {
   const { id } = useParams(null);
-  const [singleDoctorData, setSingleDoctorData] = useState("");
-  const [selectTime, setSelectTime] = useState("");
-  const [selectDay, setSelectDay] = useState("");
-  const { data: authenticatedUser } = useQuery({ queryKey: ["authUser"] });
+  const navigate = useNavigate();
 
-  //   const [selectTime, setSelectTime] = useState("");
+  const { data: authenticatedUser } = useQuery({ queryKey: ["authUser"] });
+  const queryClient = useQueryClient();
+  const [docSlots, setDocSlots] = useState([]);
+  const [slotIndex, setSlotIndex] = useState(0);
+  const [slotTime, setSlotTime] = useState("");
+
+  //getting logged in authenticated user
+  const { data: singleDoctor, isLoading } = useQuery({
+    queryKey: ["singleDoctor", id],
+
+    queryFn: async () => {
+      if (!id) {
+        return;
+      }
+      try {
+        const res = await fetch(`/api/doctor/single-doctor/${id}`, {
+          method: "GET",
+        });
+
+        if (!res.ok) {
+          return null;
+        } else {
+          const dataFromResponse = await res.json();
+          return dataFromResponse.singleDoctor;
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    },
+  });
+
+  //get slots
+  const getAvaliableSlots = async () => {
+    setDocSlots([]);
+
+    //getting current date
+    let today = new Date();
+    // console.log(today);
+
+    //next 7-day
+    for (let i = 0; i < 7; i++) {
+      //getting date with index
+
+      let currentDate = new Date(today);
+
+      currentDate.setDate(today.getDate() + i);
+      // console.log(currentDate);
+
+      //setting end time of the date with index
+      let endTime = new Date();
+      endTime.setDate(today.getDate() + i);
+      endTime.setHours(21, 0, 0, 0);
+
+      //setting hours
+      if (today.getDate() === currentDate.getDate()) {
+        currentDate.setHours(
+          currentDate.getHours() > 10 ? currentDate.getHours() + 1 : 10
+        );
+        currentDate.setMinutes(currentDate.getMinutes() > 30 ? 30 : 0);
+      } else {
+        currentDate.setHours(10);
+        currentDate.setMinutes(0);
+      }
+
+      let timeSlots = [];
+
+      while (currentDate < endTime) {
+        let formattedTime = currentDate.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+
+        //removed booked time slots
+        let day = currentDate.getDate();
+        let month = currentDate.getMonth() + 1;
+        let year = currentDate.getFullYear();
+
+        const slotDate = day + "-" + month + "-" + year;
+
+        const slotTime = formattedTime;
+
+        const isSlotBooked =
+          singleDoctor?.slots_booked[slotDate] &&
+          singleDoctor?.slots_booked[slotDate].includes(slotTime)
+            ? false
+            : true;
+
+        if (isSlotBooked) {
+          //add slot to arr
+          timeSlots.push({
+            datetime: new Date(currentDate),
+            time: formattedTime,
+          });
+        }
+
+        //increment time by 30 minute
+        currentDate.setMinutes(currentDate.getMinutes() + 30);
+      }
+      setDocSlots((prev) => {
+        return [...prev, timeSlots];
+      });
+    }
+  };
+
+  //new-appointment
+  const { mutate } = useMutation({
+    mutationFn: async ({ patient, doctor, slotDate, slotDay, slotTime }) => {
+      if (!slotTime || !slotDate) {
+        toast.error("select day & time slot");
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/appointment/new-appointment", {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({
+            patient,
+            doctor,
+            slotDate,
+            slotDay,
+            slotTime,
+          }),
+        });
+
+        let dataFromResponse = await res.json();
+        if (res.ok) {
+          toast.success(
+            dataFromResponse?.msg || "Appointment Booked Successfully"
+          );
+
+          queryClient.invalidateQueries({ queryKey: ["singleDoctor"] });
+
+          navigate("/my-appointments");
+        } else {
+          toast.error(dataFromResponse.msg || "Something went wrong");
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    },
+  });
+
+  const handleAppointment = (e) => {
+    e.preventDefault();
+    if (authenticatedUser && singleDoctor) {
+      const date = docSlots[slotIndex][0]?.datetime;
+      console.log(slotIndex);
+
+      let day = date?.getDate();
+      let month = date?.getMonth() + 1;
+      let year = date?.getFullYear();
+
+      const slotDate = day + "-" + month + "-" + year;
+      // console.log(slotDate);
+      // console.log(slotTime);
+      // console.log();
+
+      mutate({
+        patient: authenticatedUser?._id,
+        doctor: singleDoctor?._id,
+        slotDate: slotDate,
+        slotDay: weekDays[date.getDay()],
+        slotTime: slotTime,
+      });
+    }
+  };
 
   useEffect(() => {
-    const filterDoctor = doctors.filter((ele) => {
-      return ele._id == id;
-    });
-    setSingleDoctorData(filterDoctor[0]);
-    setSelectDay(filterDoctor[0]?.availability[0]?.day);
-  }, [id]);
+    getAvaliableSlots();
+  }, [singleDoctor]);
+
+  if (isLoading) {
+    return <div className="text-center mt-7">Loading...</div>;
+  }
 
   return (
     <>
       <Back />
 
-      <div className="flex gap-6 mb-6 sm:flex-row flex-col sm:items-start  items-center">
-        <div className="h-[300px] sm:w-[300px] flex flex-col border border-cyan-800 shadow-[1px_2px_cyan] ">
+      <div className="flex gap-6 mb-6 sm:flex-row flex-col sm:items-start  items-start">
+        <div className="sm:h-[300px] sm:w-[30%] flex flex-col   ">
           <img
-            src={singleDoctorData.image ? "/banner.png" : ""}
-            alt={singleDoctorData.name}
-            className="h-[100%] w-[100%]  "
+            src={singleDoctor?.image ? singleDoctor?.image : "/profile.jpg"}
+            alt={singleDoctor?.name}
+            className="h-[100%] w-[100%] border border-gray-200 "
           />
-          <p className="bg-green-500  text-white p-2  text-center">Avaliable</p>
+          <p
+            className={` ${
+              singleDoctor?.available ? "bg-green-500" : "bg-red-500"
+            }  text-white p-2  text-center`}
+          >
+            {singleDoctor?.available ? "Avaliable" : "Not Avaliable"}
+          </p>
         </div>
 
-        <div className="flex  gap-5 flex-col">
-          <h1 className=" -mt-[8px] font-bold text-2xl ">
-            {singleDoctorData.name}
+        <div className="flex  gap-5 flex-col sm:w-[70%]">
+          <h1 className=" -mt-[8px] uppercase font-bold text-2xl ">
+            {singleDoctor?.name}
           </h1>
-          <p>{singleDoctorData.about}</p>
+          <p>{singleDoctor?.about}</p>
           <p>
             Degree :{" "}
             <span className=" text-cyan-800 font-bold">
-              {singleDoctorData.degree}
+              {singleDoctor?.degree}
             </span>
           </p>
           <p>
             Specialty :{" "}
             <span className=" text-cyan-800 font-bold">
-              {singleDoctorData.specialty}
+              {singleDoctor?.speciality}
             </span>
           </p>
           <p>
             Experience :{" "}
             <span className=" text-cyan-800 font-bold">
-              {singleDoctorData.experience}
+              {singleDoctor?.experience}
             </span>
           </p>
           <p>
             Fees :{" "}
             <span className=" text-cyan-800 font-bold">
-              {singleDoctorData.fees}
+              ₹{singleDoctor?.fees}
             </span>
           </p>{" "}
           {/* address */}
           <div className="flex gap-2">
-            <p className=" font-bold text-1xl ">Address</p>
-            <p>: {singleDoctorData?.address}</p>
+            <p className="  text-1xl ">Address</p>
+            <p>: {singleDoctor?.address}</p>
           </div>
           {/* booking slots */}
-          {authenticatedUser?.role === "Patient" && (
-            <>
-              <div>
-                <h1 className=" font-bold text-2xl mt-7 ">Booking Slots</h1>
-                <p className="text-yellow-700">
-                  choose slots comfortable to you
-                </p>
-                <div className="flex items-center gap-2">
-                  <p className="bg-slate-400 p-2 rounded-md w-[2px]"></p>Not
-                  Avaliable
-                </div>
-                {/* days */}
-                <div className="flex items-center gap-3 mt-8 mb-5">
-                  <div className=" grid md:grid-cols-4 grid-cols-3 gap-3">
-                    {singleDoctorData?.availability?.map((ele) => {
+          {authenticatedUser?.role === "patient" &&
+            singleDoctor?.available !== false && (
+              <div className="flex flex-col  gap-3 sm:justify-start justify-center">
+                <div className="flex flex-wrap items-center w-[100%]  gap-4 ">
+                  {docSlots.length &&
+                    docSlots.map((ele, idx) => {
                       return (
-                        <button
-                          className={`btn text-center gap-5  w-[100px]    text-white p-2 rounded-md hover:bg-cyan-400 duration-500 cursor-pointer  ${
-                            ele.day === selectDay
-                              ? "bg-cyan-400"
-                              : "bg-cyan-800"
+                        <div
+                          key={idx}
+                          onClick={() => setSlotIndex(idx)}
+                          className={`flex gap-2 w-[130px] items-center flex-col  text-white p-2 rounded-md cursor-pointer hover:bg-cyan-800 duration-500 ${
+                            slotIndex === idx ? "bg-cyan-800" : "bg-cyan-500"
                           }`}
-                          onClick={(e) => {
-                            setSelectDay(ele.day);
-                            setSelectTime("");
-                          }}
                         >
-                          {ele.day}
-                        </button>
+                          <p>{ele[0] && weekDays[ele[0].datetime.getDay()]}</p>
+                          <p>{ele[0] && ele[0].datetime.getDate()}</p>
+                        </div>
                       );
                     })}
-                  </div>
                 </div>
-                {/* time */}
-                <div className=" flex">
-                  <div className=" grid md:grid-cols-3 sm:grid-col-2 grid-cols-2 gap-3">
-                    {singleDoctorData?.availability
-                      ?.filter((ele) => {
-                        return ele.day === selectDay;
-                      })
-                      .map((slotTime) => {
-                        return slotTime.slots.map((time) => {
-                          return (
-                            <button
-                              onClick={(e) => setSelectTime(time.time)}
-                              className={`text-center gap-5 hover:bg-cyan-400 hover:duration-500  text-white p-2 rounded-md  ${
-                                time.time === selectTime
-                                  ? "bg-cyan-400  duration-500 cursor-pointer"
-                                  : "bg-cyan-800 "
-                              }  ${!time.available ? "bg-slate-400" : ""}`}
-                              disabled={!time.available}
-                            >
-                              {time.time}
-                            </button>
-                          );
-                        });
-                      })}
-                  </div>
-                </div>
-              </div>
 
-              <button
-                onClick={() => navigate(-1)}
-                className=" mb-8 w-[170px] mt-4 bg-green-500 text-white p-2 rounded-md hover:bg-cyan-500 duration-500"
-              >
-                Book Appointment
-              </button>
-            </>
-          )}
+                {/* time */}
+                <div
+                  className={`flex flex-wrap mt-6 items-center w-[100%]  gap-4`}
+                >
+                  {docSlots.length &&
+                    docSlots[slotIndex].map((ele, idx) => {
+                      return (
+                        <div
+                          key={idx}
+                          onClick={() => setSlotTime(ele.time)}
+                          className={`${
+                            ele.time === slotTime
+                              ? "bg-cyan-800"
+                              : "bg-cyan-500"
+                          }  text-white p-2 rounded-md cursor-pointer hover:bg-cyan-800  hover:duration-500`}
+                        >
+                          {ele.time}
+                        </div>
+                      );
+                    })}
+                </div>
+
+                <button
+                  onClick={handleAppointment}
+                  className="w-[160px] mt-6 bg-cyan-800 text-white p-2 rounded-md hover:bg-cyan-500 duration-500"
+                >
+                  Book Appointment
+                </button>
+              </div>
+            )}
         </div>
       </div>
 
       {/* SuggestedDoctors */}
-      <SuggestedDoctors singleDoctorData={singleDoctorData}></SuggestedDoctors>
+      <SuggestedDoctors
+        singleDoctor={singleDoctor ? singleDoctor : ""}
+      ></SuggestedDoctors>
     </>
   );
 };
