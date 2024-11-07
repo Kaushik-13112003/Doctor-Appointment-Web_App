@@ -4,7 +4,7 @@ import App from "./App.jsx";
 import "./index.css";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-
+// 4000 0035 6000 0008
 const queryClient = new QueryClient();
 
 createRoot(document.getElementById("root")).render(

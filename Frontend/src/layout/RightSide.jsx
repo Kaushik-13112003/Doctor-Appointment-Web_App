@@ -4,7 +4,7 @@ import { doctors } from "../assets/data";
 import { AiOutlineArrowRight } from "react-icons/ai";
 import { useQuery } from "@tanstack/react-query";
 
-const RightSide = () => {
+const RightSide = ({ setFilterDoctors }) => {
   const { speciality } = useParams(); // Capture the dynamic route parameter
 
   //getting logged in authenticated user
@@ -63,7 +63,9 @@ const RightSide = () => {
             </NavLink>
 
             <div className="flex  gap-5 flex-col">
-              <h1 className=" -mt-[8px] font-bold text-2xl ">{ele.name}</h1>
+              <h1 className=" sm:-mt-[8px] mt-3 font-bold text-2xl ">
+                {ele.name}
+              </h1>
               <p>
                 Specialty :{" "}
                 <span className=" text-cyan-800 font-bold">

@@ -218,6 +218,16 @@ const DoctorAppointmentLayout = ({ appointmentData, type }) => {
                   <p className="text-gray-700">
                     Fees: ₹{appointment?.doctor?.fees}
                   </p>
+                  {appointment?.payment === true && (
+                  <p className="text-gray-700 flex gap-2 items-center">
+                    Amount :
+                    {appointment?.payment ? (
+                      <p className=" rounded-sm text-green-600">PAID</p>
+                    ) : (
+                      "NOT PAID"
+                    )}
+                  </p>
+                )}
 
                   <p
                     className={`font-semibold ${

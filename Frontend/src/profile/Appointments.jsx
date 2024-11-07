@@ -190,10 +190,14 @@ const Appointments = () => {
                 <button
                   onClick={() => handlePayOnline(appointment)}
                   className={`bg-cyan-800 text-white cursor-pointer p-2 rounded-lg hover:bg-cyan-500 duration-300 ${
-                    appointment.status !== "Confirmed" &&
+                    (appointment.status !== "Confirmed" ||
+                      appointment.payment === true) &&
                     "bg-gray-400 hover:bg-gray-400"
                   }`}
-                  disabled={appointment.status !== "Confirmed"}
+                  disabled={
+                    appointment.status !== "Confirmed" ||
+                    appointment.payment === true
+                  }
                 >
                   Pay Online
                 </button>

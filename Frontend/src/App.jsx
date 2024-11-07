@@ -36,10 +36,9 @@ import Cancel from "./profile/Cancel";
 const App = () => {
   const navigate = useNavigate("");
 
-  //getting logged in authenticated user
+  // Fetching authenticated user
   const { data: authenticatedUser, isLoading } = useQuery({
     queryKey: ["authUser"],
-
     queryFn: async () => {
       try {
         const res = await fetch("/api/auth/get-auth-user", {
@@ -71,11 +70,11 @@ const App = () => {
       <Toaster />
       <ScrollToTop
         smooth
-        className="bg-cyan-800 flex items-center justify-center "
+        className="bg-cyan-800 flex items-center justify-center"
         color="white"
       />
 
-      <div className="w-[85vw] ">
+      <div className="w-[85vw]">
         {authenticatedUser?.role === "admin" && <Header />}
         {authenticatedUser?.role === "doctor" && <Header />}
         {authenticatedUser?.role === "patient" && <Navbar />}
@@ -83,13 +82,10 @@ const App = () => {
         <Routes>
           {/* Public Routes */}
           <Route path="/contact" element={<Contact />}></Route>
-          <Route
-            path="/access-denied"
-            element={<NotFound authenticatedUser={authenticatedUser} />}
-          ></Route>
-
           <Route path="/about" element={<About />}></Route>
           <Route path="/register" element={<Register />}></Route>
+          <Route path="/login" element={<Login />}></Route>
+          {/* <Route path="/all-doctors" element={<Doctors />}></Route> */}
           <Route
             path="/:speciality"
             element={authenticatedUser ? <Speciality /> : <Register />}
@@ -98,7 +94,11 @@ const App = () => {
             path="/doctor/:id"
             element={authenticatedUser ? <SingleDoctor /> : <Register />}
           ></Route>
-          <Route path="/login" element={<Login />}></Route>
+
+          {/* Conditional Redirect for Unauthenticated Users */}
+          {!authenticatedUser && (
+            <Route path="*" element={<Navigate to="/login" />} />
+          )}
 
           {/* Patient Routes */}
           <Route
@@ -134,7 +134,6 @@ const App = () => {
               </PrivateRoute>
             }
           ></Route>
-
           <Route
             path="/my-appointments"
             element={
@@ -170,17 +169,6 @@ const App = () => {
           ></Route>
 
           {/* Admin Routes */}
-          <Route
-            path="/"
-            element={
-              <PrivateRoute
-                authenticatedUser={authenticatedUser}
-                requiredRole="admin"
-              >
-                <AdminDashboard />
-              </PrivateRoute>
-            }
-          ></Route>
           <Route
             path="/admin-dashboard"
             element={

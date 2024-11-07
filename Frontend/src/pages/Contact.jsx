@@ -6,6 +6,8 @@ const Contact = () => {
     email: "",
     message: "",
   });
+  const [errors, setErrors] = useState({});
+  const [successMessage, setSuccessMessage] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -15,10 +17,43 @@ const Contact = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const validateForm = () => {
+    let newErrors = {};
+    if (!formData.name) newErrors.name = "Name is required";
+    if (!formData.email) newErrors.email = "Email is required";
+    if (!formData.message) newErrors.message = "Message is required";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form Submitted", formData);
-    // Here, you can add code to handle form submission, like sending the data to a backend API
+    setSuccessMessage("");
+
+    if (!validateForm()) return;
+
+    try {
+      const response = await fetch(`https://formspree.io/f/mnnqdgnj`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        setSuccessMessage("Message sent successfully!");
+
+        setTimeout(() => {
+          setSuccessMessage("");
+        }, 3000);
+        setFormData({ name: "", email: "", message: "" });
+        setErrors({});
+      } else {
+        setSuccessMessage("Failed to send message. Please try again later.");
+      }
+    } catch (error) {
+      setSuccessMessage("An error occurred. Please try again.");
+      console.error("Form submission error:", error);
+    }
   };
 
   return (
@@ -57,6 +92,9 @@ const Contact = () => {
               placeholder="Enter your name"
               required
             />
+            {errors.name && (
+              <p className="text-red-500 text-sm">{errors.name}</p>
+            )}
           </div>
 
           {/* Email Input */}
@@ -77,6 +115,9 @@ const Contact = () => {
               placeholder="Enter your email"
               required
             />
+            {errors.email && (
+              <p className="text-red-500 text-sm">{errors.email}</p>
+            )}
           </div>
 
           {/* Message Input */}
@@ -97,6 +138,9 @@ const Contact = () => {
               rows="5"
               required
             ></textarea>
+            {errors.message && (
+              <p className="text-red-500 text-sm">{errors.message}</p>
+            )}
           </div>
 
           {/* Submit Button */}
@@ -108,6 +152,11 @@ const Contact = () => {
               Send Message
             </button>
           </div>
+
+          {/* Success Message */}
+          {successMessage && (
+            <p className="text-green-500 text-center mt-4">{successMessage}</p>
+          )}
         </form>
       </div>
 

@@ -9,7 +9,7 @@ const AdminDashboard = () => {
   const { data: allDoctors } = useQuery({ queryKey: ["allDoctors"] });
 
   const { data: adminAppointments, isLoading } = useAdminAppointments();
-  // console.log(adminAppointments);
+  console.log(adminAppointments);
 
   if (isLoading) {
     return <div className="text-center mt-7">Loading...</div>;
@@ -42,7 +42,7 @@ const AdminDashboard = () => {
                 adminAppointments?.reduce((acc, ele) => {
                   return ele?.status === "Completed"
                     ? (acc += ele?.doctor?.fees)
-                    : 0;
+                    : acc;
                 }, 0)}
             </p>
             <h1>Total Amount</h1>

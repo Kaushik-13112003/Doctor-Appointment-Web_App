@@ -12,7 +12,7 @@ const Speciality = () => {
       <Back />
       <div className="flex gap-5 sm:flex-row flex-col ">
         <div className="sm:block hidden">
-          <LeftSide />
+          <LeftSide  setFilterDoctors={setFilterDoctors}/>
         </div>
         <div className="sm:hidden">
           {filterDoctor ? (
@@ -29,7 +29,7 @@ const Speciality = () => {
             </button>
           )}
         </div>
-        <RightSide />
+        <RightSide/>
       </div>
     </>
   );
